@@ -1,0 +1,79 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DATABASE_URI:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:devlife-config-db}
+    username: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:Admin@123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  liquibase:
+    enabled: true
+  profiles:
+    active: ${PROFILE:jdbc}
+  application:
+    name: devlife-config-server
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWK_RESOURCE_URI:http://localhost:9091/realms/devlife/protocol/openid-connect/certs}
+  cloud:
+    config:
+      server:
+        jdbc:
+          order: 1
+          sql: SELECT KEY, VALUE from PROPERTIES where APPLICATION=? and PROFILE=? and LABEL=?
+          sql-without-profile: SELECT KEY, VALUE from PROPERTIES where APPLICATION=? and PROFILE is null and LABEL=?
+server:
+  port: ${SERVER_PORT:8888}
+  error:
+    include-message: always
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_SERVER_HOST:localhost}:${EUREKA_SERVER_PORT:8761}/eureka
+  instance:
+    hostname: devlife-config-server
+    prefer-ip-address: true
+
+feign:
+  hystrix:
+    enabled: true
+
+ribbon:
+  ConnectTimeout: 600000
+  ReadTimeout: 1200000
+  eager-load:
+    enabled: true
+    clients: service-bar
+
+javers:
+  sqlSchema: audit
+  sqlSchemaManagementEnabled: true
+  sqlGlobalIdCacheDisabled: false
+  objectAccessHook: org.javers.hibernate.integration.HibernateUnproxyObjectAccessHook
+  sqlGlobalIdTableName: jv_global_id
+  sqlCommitTableName: jv_commit
+  sqlSnapshotTableName: jv_snapshot
+  sqlCommitPropertyTableName: jv_commit_property
+  mappingStyle: FIELD
+  algorithm: SIMPLE
+  commitIdGenerator: synchronized_sequence
+  prettyPrint: true
+  typeSafeValues: false
+  initialChanges: true
+  terminalChanges: true
+  packagesToScan:
+  auditableAspectEnabled: true
+  springDataAuditableRepositoryAspectEnabled: true
+  usePrimitiveDefaults: true
+  prettyPrintDateFormats:
+    localDateTime: 'dd MMM yyyy, HH:mm:ss'
+    zonedDateTime: 'dd MMM yyyy, HH:mm:ssZ'
+    localDate: 'dd MMM yyyy'
+    localTime: 'HH:mm:ss'
